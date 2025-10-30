@@ -14,9 +14,11 @@ const API = `${BACKEND_URL}/api`;
 
 const Idees = () => {
   const [idees, setIdees] = useState([]);
+  const [filteredIdees, setFilteredIdees] = useState([]);
+  const [selectedTheme, setSelectedTheme] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIdee, setEditingIdee] = useState(null);
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', theme: '', sous_theme: '' });
   const { toast } = useToast();
 
   useEffect(() => {
