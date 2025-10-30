@@ -117,6 +117,8 @@ class Document(BaseModel):
 class Idee(BaseModel):
     title: str
     description: Optional[str] = ""
+    theme: str
+    sous_theme: Optional[str] = ""
 
 class De10Option(BaseModel):
     number: int
