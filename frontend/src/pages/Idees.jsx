@@ -1,25 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import { Button } from '../components/ui/button';
-import { Plus, Lightbulb, Pencil, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
-import { useToast } from '../hooks/use-toast';
-import axios from 'axios';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Idees = () => {
+/**
+ * Page Idées — avec Thématique / Sous‑thématique
+ */
+
+export default function Idees() {
+  // ----------------------- Auth helper -----------------------
+  const token = useMemo(() => {
+    const fromWindow = typeof window !== "undefined" && window.__AUTH_TOKEN__;
+    const fromLocalStorage =
+      typeof window !== "undefined" && window.localStorage
+        ? window.localStorage.getItem("token")
+        : null;
+    return fromWindow || fromLocalStorage || null;
+  }, []);
+
+  const authCfg = useMemo(
+    () => (token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+    [token]
+  );
+
+  // ----------------------- State ----------------------------
   const [idees, setIdees] = useState([]);
-  const [filteredIdees, setFilteredIdees] = useState([]);
-  const [selectedTheme, setSelectedTheme] = useState('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingIdee, setEditingIdee] = useState(null);
-  const [formData, setFormData] = useState({ title: '', description: '', theme: '', sous_theme: '' });
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
+
+  const [themes, setThemes] = useState([]);
+  const [subthemes, setSubthemes] = useState([]); // dépend des filtres
+  const [subthemesForForm, setSubthemesForForm] = useState([]); // dépend du formulaire
+
+  const [filters, setFilters] = useState({ theme: "", subtheme: "" });
+
+  // modes de création : utiliser existant vs nouveau
+  const [createModeTheme, setCreateModeTheme] = useState("existing"); // existing | new
+  const [createModeSubtheme, setCreateModeSubtheme] = useState("existing"); // existing | new
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    theme: "",
+    subtheme: "",
+  });
 
   useEffect(() => {
     fetchIdees();
